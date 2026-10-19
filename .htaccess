@@ -1,0 +1,61 @@
+# HMS Denver — Apache configuration
+
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+AddDefaultCharset UTF-8
+ServerSignature Off
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block private directories and dotfiles.
+    RewriteRule ^(app|storage)(/|$) - [F,L]
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # Production only: force HTTPS and the non-www canonical host.
+    RewriteCond %{HTTP_HOST} ^(www\.)?hmsdenver\.com$ [NC]
+    RewriteCond %{HTTPS} off [OR]
+    RewriteCond %{HTTP_HOST} ^www\. [NC]
+    RewriteRule ^ https://hmsdenver.com%{REQUEST_URI} [R=301,L,NE]
+
+    # Strip index.php from URLs.
+    RewriteCond %{THE_REQUEST} \s/+index\.php[\s?/] [NC]
+    RewriteRule ^index\.php/?(.*)$ /$1 [R=301,L]
+
+    # Front controller for everything that is not a real file.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # Enable once HTTPS is confirmed working in production:
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header unset X-Powered-By
+
+    <FilesMatch "\.(css|js|svg|png|jpe?g|webp|avif|woff2?)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/xml application/javascript application/json application/ld+json image/svg+xml application/manifest+json
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+    AddType image/svg+xml .svg
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+</IfModule>

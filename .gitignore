@@ -1,0 +1,19 @@
+# Private data — never commit (repo is public)
+/SEO/
+/seo/
+app/config.local.php
+.env
+
+# Runtime files
+/storage/logs/*
+/storage/leads/*
+!/storage/logs/.gitkeep
+!/storage/leads/.gitkeep
+
+# Local tooling / OS
+__*.html
+*.zip
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
